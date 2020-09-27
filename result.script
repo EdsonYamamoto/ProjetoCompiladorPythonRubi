@@ -1,0 +1,26 @@
+# !/bin/bash
+echo "Insira dois números: "
+read a
+read b
+echo "Escolha a operação: "
+echo "1. +"
+echo "2. -"
+echo "3. *"
+echo "4. /"
+read ch
+if [ $ch -eq "1" ]
+then
+res=`echo $a + $b | bc`
+elif [ $ch -eq "2" ]
+then
+res=`echo $a - $b | bc`
+elif [ $ch -eq "3" ]
+then
+res=`echo $a \* $b | bc`
+elif [ $ch -eq "4" ]
+then
+res=`echo "scale=2; $a / $b" | bc`
+else
+echo "comando inválido"
+fi
+echo "Resultado : $res"

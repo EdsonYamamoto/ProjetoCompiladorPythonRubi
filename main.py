@@ -3,6 +3,7 @@ import re
 T_KEYWORDS_INIT= "<keyword init>"
 T_OPLOGICO= "<opLogic %s>"
 T_OPMAT= "<opMat %s>"
+T_BOOL= "<opBool %s>"
 T_INT = "<int %s>"
 T_STRING = "<str %s>"
 T_IDENTIF = "<id %s>"
@@ -10,6 +11,12 @@ T_COMMENT = "<comentario %s>"
 T_LPARENT = "<LParent %s>"
 T_RPARENT = "<RParent %s>"
 T_EOF = "eof"
+
+T_ReservWord =[
+    "if",
+    "else"
+
+]
 
 def afd_string(token):
     if token[0] == '"' and token[-1] == '"':
@@ -41,6 +48,13 @@ def afd_operatorMatematico(token):
 def afd_operatorLogico(token):
     return re.match('[==]||[!=]||[<]||[>]||[<=]||[>=]', token)
 
+def afd_operatorBool(token):
+    return re.match('[true]||[false]', token)
+
+def afd_reservedWord(token):
+    TpalavraReservada
+    return re.match("[(]", token)
+
 class Token():
 
     def __init__(self, tipo, valor=None):
@@ -53,6 +67,12 @@ class Token():
 def afd_principal(token):
     if token == "init":
         return Token(T_KEYWORDS_INIT)
+
+    elif afd_operatorBool(token):
+        return Token(T_BOOL, token)
+
+    elif afd_reservedWord(token):
+        return Token(T_ReservWord, token)
 
     elif afd_comentario(token):
         return Token(T_COMMENT, token)

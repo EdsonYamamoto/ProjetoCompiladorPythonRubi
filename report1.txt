@@ -1,4 +1,20 @@
-1 - lexicos
+1- feito ate o momento
+Codigo em ruby para ser lido
+Separado os tokens da linguagem
 
-analise lexica
-Numero,
+2 - lexicos
+Analise lexica
+Número
+String
+Comentario
+Palavra reservada
+Operadores logicos
+Operadores matematicos
+Booleanos
+
+3 - sintatica
+Foi criado o arquivo contendo as regras da linguagem, porém a parte sintatica não foi implementada.
+Seguem imagem contendo as regras da linguagem imagem.jpg, e os arquivos txt da produção das regras
+Arvore_Case_When.txt
+Arvore_For.txt
+Arvore_If.txt
