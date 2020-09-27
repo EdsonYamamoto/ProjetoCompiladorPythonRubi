@@ -1,3 +1,8 @@
+Edson Kazumi Yamamoto 081368
+Gilberto Moshim Yabiku Jr 153479
+Gustavo Moraes Mendes 150591
+Lauren Maria Ferreira 150017
+
 1- feito ate o momento
 Codigo em ruby para ser lido
 Separado os tokens da linguagem
