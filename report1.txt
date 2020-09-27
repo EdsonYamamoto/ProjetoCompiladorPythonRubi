@@ -1,0 +1,4 @@
+1 - lexicos
+
+analise lexica
+Numero,

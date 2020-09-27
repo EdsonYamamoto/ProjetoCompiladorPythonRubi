@@ -1,0 +1,3 @@
+statement ::= <id> <op => expr
+expr ::= term ( <op +> | <op -> term )*
+term ::= <id> | <int>
