@@ -1,4 +1,4 @@
-
+#projeto de compilador para transformar ruby em script
 a = 0
 b = 0
 
@@ -30,4 +30,4 @@ else
   puts "Comando Inválido"
 end
 
-puts("Resultado: ", res)
+puts ( "Resultado: " , res)

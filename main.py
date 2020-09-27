@@ -1,4 +1,6 @@
 import re
+from optparse import OptionParser
+import inspect
 
 T_KEYWORDS_INIT= "<keyword init>"
 T_OPLOGICO= "<opLogic %s>"
@@ -14,8 +16,10 @@ T_EOF = "eof"
 
 T_ReservWord =[
     "if",
-    "else"
-
+    "elseif",
+    "else",
+    "puts",
+    "gets"
 ]
 
 def afd_string(token):
@@ -34,7 +38,7 @@ def afd_identificador(token):
     return re.match("[a-zA-Z][a-zA-Z_0-9]*", token)
 
 def afd_comentario(token):
-    return re.match('\"([^\\\n]|(\\.))*?\"', token)
+    return re.match("([\#][.]*)", token)
 
 def afd_lParent(token):
     return re.match("[(]", token)
@@ -49,11 +53,10 @@ def afd_operatorLogico(token):
     return re.match('[==]||[!=]||[<]||[>]||[<=]||[>=]', token)
 
 def afd_operatorBool(token):
-    return re.match('[true]||[false]', token)
+    return re.match('([t][r][u][e])|([f][a][l][s][e])', token)
 
 def afd_reservedWord(token):
-    TpalavraReservada
-    return re.match("[(]", token)
+    return token in T_ReservWord
 
 class Token():
 
@@ -68,14 +71,11 @@ def afd_principal(token):
     if token == "init":
         return Token(T_KEYWORDS_INIT)
 
-    elif afd_operatorBool(token):
-        return Token(T_BOOL, token)
+    elif afd_comentario(token):
+        return Token(T_COMMENT, token)
 
     elif afd_reservedWord(token):
         return Token(T_ReservWord, token)
-
-    elif afd_comentario(token):
-        return Token(T_COMMENT, token)
 
     elif afd_lParent(token):
         return Token(T_LPARENT, token)
@@ -86,9 +86,6 @@ def afd_principal(token):
     elif afd_operatorMatematico(token):
         return Token(T_OPMAT, token)
 
-    elif afd_operatorLogico(token):
-        return Token(T_OPLOGICO, token)
-
     elif afd_string(token):
         return Token(T_STRING, token)
 
@@ -97,6 +94,13 @@ def afd_principal(token):
 
     elif afd_identificador(token):
         return Token(T_IDENTIF, token)
+
+    elif afd_operatorLogico(token):
+        return Token(T_OPLOGICO, token)
+
+    elif afd_operatorBool(token):
+        return Token(T_BOOL, token)
+
     else:
         return None
 
@@ -164,23 +168,44 @@ class Parser():
 
 arquivo = open('codigo.rb', 'r')
 
-pattern = r'"([A-Za-z0-9_\- ]*)"'
+patternStr = r'"(.*)"'
+patternComment = r'#(.*)'
 
 tokens = []
 for l in arquivo.readlines():
     l = l.replace("\n", "")
 
-    #if l!='':
-    #    m = re.search(pattern, l)
-    #    if m != None:
-    #        print(m.group())
+    if l!='':
+        m = re.search(patternStr, l)
+        if m != None:
+            m2= m.group()
+            l = l.replace(m2,m2.replace(" ","_"))
+
+        m = re.search(patternComment, l)
+        if m != None:
+            m2= m.group()
+            l = l.replace(m2,m2.replace(" ","_"))
 
     for token in l.split():
-        t = afd_principal(token)
-        tokens.append(t)
-        print(t.valor)
+        try:
+            tokens.append(afd_principal(token))
+        except Exception as e:
+            print(tokens)
+            print(str(e) + " na posição %i da linha %i" % (l.index(token), ln))
+            raise StopExecution
 
-    Parser(tokens)
+for token in tokens:
+    if token.tipo == T_COMMENT:
+        tokens.remove(token)
+
+parser = Parser(tokens)
+
+
+
+while True:
+  parser.statement()
+  if len(parser.tokens) == parser.pos:
+    break
 '''
 arvores = arvoreSintatica(tokens)
 for arvore in arvores:
