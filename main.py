@@ -12,15 +12,19 @@ T_IDENTIF = "<id %s>"
 T_COMMENT = "<comentario %s>"
 T_LPARENT = "<LParent %s>"
 T_RPARENT = "<RParent %s>"
+T_LCOLCHETE = "<LColchete %s>"
+T_RCOLCHETE = "<RColchete %s>"
+
 T_EOF = "eof"
 
 T_ReservWord =[
     "if",
     "elseif",
-    "else",
-    "puts",
-    "gets"
+    "else"
 ]
+
+T_ReservWordGets = "<method gets %s>"
+T_ReservWordPuts = "<method puts %s>"
 
 def afd_string(token):
     if token[0] == '"' and token[-1] == '"':
@@ -40,12 +44,6 @@ def afd_identificador(token):
 def afd_comentario(token):
     return re.match("([\#][.]*)", token)
 
-def afd_lParent(token):
-    return re.match("[(]", token)
-
-def afd_rParent(token):
-    return re.match('[)]', token)
-
 def afd_operatorMatematico(token):
     return re.match('[-+*/]', token)
 
@@ -57,6 +55,24 @@ def afd_operatorBool(token):
 
 def afd_reservedWord(token):
     return token in T_ReservWord
+
+def afd_lParent(token):
+    return re.match('([(])', token)
+
+def afd_rParent(token):
+    return re.match('([)])', token)
+
+def afd_lColchete(token):
+    return re.match('([\[])', token)
+
+def afd_rColchete(token):
+    return re.match('([\]])', token)
+
+def afd_reservWordPuts(token):
+    return re.match('([p][u][t][s])', token)
+
+def afd_reservWordGets(token):
+    return re.match('([g][e][t][s])', token)
 
 class Token():
 
@@ -77,11 +93,23 @@ def afd_principal(token):
     elif afd_reservedWord(token):
         return Token(T_ReservWord, token)
 
+    elif afd_lColchete(token):
+        return Token(T_LCOLCHETE, token)
+
+    elif afd_rColchete(token):
+        return Token(T_RCOLCHETE, token)
+
     elif afd_lParent(token):
         return Token(T_LPARENT, token)
 
     elif afd_rParent(token):
         return Token(T_RPARENT, token)
+
+    elif afd_reservWordPuts(token):
+        return Token(T_ReservWordPuts, token)
+
+    elif afd_reservWordGets(token):
+        return Token(T_ReservWordGets, token)
 
     elif afd_operatorMatematico(token):
         return Token(T_OPMAT, token)
@@ -139,10 +167,26 @@ class Parser():
         """
         statement ::= <id> <op => expr
         """
+        if self.token_atual.tipo == T_IDENTIF:
+            self.use(T_IDENTIF)
+            self.use(T_OPLOGICO, '=')
+            self.expr()
 
-        self.use(T_IDENTIF)
-        self.use(T_OPLOGICO, '=')
-        self.expr()
+        #elif self.token_atual.tipo == T_ReservWord:
+        #    if self.token_atual.valor == "if":
+        #        self.use(T_IDENTIF)
+
+        elif self.token_atual.tipo == T_ReservWordPuts:
+            self.use(T_ReservWordPuts)
+            #self.use(T_STRING)
+            self.expr()
+
+        elif self.token_atual.tipo == T_ReservWordGets:
+            self.use(T_ReservWordGets)
+            self.use(T_STRING)
+            self.expr()
+        else:
+            "teste"
 
     def expr(self):
         """
@@ -150,19 +194,45 @@ class Parser():
         """
 
         self.term()
-        while self.token_atual.tipo == T_OPMAT and self.token_atual.valor in ['+', '-']:
-            self.use(T_OPMAT)
-            self.term()
+        if self.token_atual.tipo == T_OPMAT:
+            while self.token_atual.tipo == T_OPMAT and self.token_atual.valor in ['+', '-','*','/']:
+                self.use(T_OPMAT)
+                self.term()
+
+            """
+            expr ::= term ( <op +> | <op -> term )*
+            """
+        elif self.token_atual.tipo == T_OPLOGICO:
+            while self.token_atual.tipo == T_OPMAT and self.token_atual.valor in ['+', '-','*','/']:
+                self.use(T_OPMAT)
+                self.term()
+            print("teste")
+
+        elif self.token_atual.tipo == T_ReservWordPuts:
+            print("expr T_ReservWordPuts")
+
+        elif self.token_atual.tipo == T_ReservWordGets:
+            print("expr T_ReservWordGets")
+
+        elif self.token_atual.tipo == T_OPMAT:
+            print("teste")
 
     def term(self):
         """
         term ::= <id> | <int>
         """
-
         if self.token_atual.tipo == T_INT:
             self.use(T_INT)
+        elif self.token_atual.tipo == T_STRING:
+            self.use(T_STRING)
+        elif self.token_atual.tipo == T_BOOL:
+            self.use(T_BOOL)
         elif self.token_atual.tipo == T_IDENTIF:
             self.use(T_IDENTIF)
+        elif self.token_atual.tipo == T_ReservWordGets:
+            self.use(T_ReservWordGets)
+        elif self.token_atual.tipo == T_ReservWordPuts:
+            self.use(T_ReservWordPuts)
         else:
             self.erro()
 
