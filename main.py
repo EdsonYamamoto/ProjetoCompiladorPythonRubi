@@ -4,6 +4,7 @@ T_KEYWORD = "keyword"
 T_OP = "op"
 T_INT = "int"
 T_STRING = "string"
+T_BOOL = "bool"
 T_ID = "id"
 T_EOF = "eof"
 T_PAR = "par"
@@ -44,6 +45,10 @@ def afd_string(token):
     else:
         return False
 
+def afd_bool(token):
+    if token == 'true' or token == 'false':
+        return True
+    return False
 
 def afd_identificador(token):
     regex = re.compile('[a-zA-Z][a-zA-Z0-9_.]*')
@@ -58,7 +63,7 @@ def afd_identificador(token):
 
 
 def afd_operadorLogico(token):
-    return re.match("([==])", token)
+    return re.match("([==]|[>=]|[<=]|[>]|[<]|[!=])", token)
 
 def afd_comentario(token):
     return re.match("([\#][.]*)", token)
@@ -84,6 +89,9 @@ def afd_principal(token):
 
     elif afd_string(token):
         return Token(T_STRING, token)
+
+    elif afd_bool(token):
+        return Token(T_BOOL, token)
 
     elif afd_identificador(token):
         return Token(T_ID, token)
@@ -190,6 +198,25 @@ class Parser():
             elif op == "-":
                 a -= b
 
+        while self.token_atual.tipo == T_OPLOGICO and self.token_atual.valor in ["==",">=","<=",">","<","!="]:
+            op = self.token_atual.valor
+            self.use(T_OPLOGICO)
+
+            b = self.term()
+
+            if op == "==":
+                a = a==b
+            elif op == ">=":
+                a = a>=b
+            elif op == "<=":
+                a = a<=b
+            elif op == ">":
+                a = a>b
+            elif op == "<":
+                a = a<b
+            elif op == "!=":
+                a = a!=b
+
         return a
 
     def term(self):
@@ -226,6 +253,12 @@ class Parser():
             if len(x)>1:
                 x = x[1:len(x)-1]
             self.use(T_STRING)
+            return x
+
+        elif self.token_atual.tipo == T_BOOL:
+            x = self.token_atual.valor == 'true'
+            self.use(T_BOOL)
+
             return x
 
         elif self.token_atual.tipo == T_ID:
@@ -280,7 +313,56 @@ class Parser():
                         self.use(T_ID)
                     elif self.token_atual.tipo == T_STRING:
                         self.use(T_STRING)
+                    elif self.token_atual.tipo == T_BOOL:
+                        self.use(T_BOOL)
                     return self.token_atual.valor == self.dict[self.pilha.pop()]
+                elif self.token_atual.valor == "!=":
+                    self.use(T_OPLOGICO)
+                    if self.token_atual.tipo == T_INT:
+                        self.use(T_INT)
+                    elif self.token_atual.tipo == T_ID:
+                        self.use(T_ID)
+                    elif self.token_atual.tipo == T_STRING:
+                        self.use(T_STRING)
+                    elif self.token_atual.tipo == T_BOOL:
+                        self.use(T_BOOL)
+                    return self.token_atual.valor != self.dict[self.pilha.pop()]
+                elif self.token_atual.valor == ">=":
+                    self.use(T_OPLOGICO)
+                    if self.token_atual.tipo == T_INT:
+                        self.use(T_INT)
+                    elif self.token_atual.tipo == T_ID:
+                        self.use(T_ID)
+                    elif self.token_atual.tipo == T_STRING:
+                        self.use(T_STRING)
+                    return self.token_atual.valor >= self.dict[self.pilha.pop()]
+                elif self.token_atual.valor == "<=":
+                    self.use(T_OPLOGICO)
+                    if self.token_atual.tipo == T_INT:
+                        self.use(T_INT)
+                    elif self.token_atual.tipo == T_ID:
+                        self.use(T_ID)
+                    elif self.token_atual.tipo == T_STRING:
+                        self.use(T_STRING)
+                    return self.token_atual.valor <= self.dict[self.pilha.pop()]
+                elif self.token_atual.valor == ">":
+                    self.use(T_OPLOGICO)
+                    if self.token_atual.tipo == T_INT:
+                        self.use(T_INT)
+                    elif self.token_atual.tipo == T_ID:
+                        self.use(T_ID)
+                    elif self.token_atual.tipo == T_STRING:
+                        self.use(T_STRING)
+                    return self.token_atual.valor > self.dict[self.pilha.pop()]
+                elif self.token_atual.valor == "<":
+                    self.use(T_OPLOGICO)
+                    if self.token_atual.tipo == T_INT:
+                        self.use(T_INT)
+                    elif self.token_atual.tipo == T_ID:
+                        self.use(T_ID)
+                    elif self.token_atual.tipo == T_STRING:
+                        self.use(T_STRING)
+                    return self.token_atual.valor < self.dict[self.pilha.pop()]
                 return
 
             return self.dict[self.pilha.pop()]

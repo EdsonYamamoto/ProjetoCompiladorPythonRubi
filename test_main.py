@@ -101,6 +101,31 @@ class MyTest(unittest.TestCase):
         interpreter.tokenizer()
         self.assertNotEqual(None, interpreter.execParser(), "recebedor variavel")
         #self.assertEqual(2, interpreter.execParser(), "recebedor variavel")
+
+    def testBasico17(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test17.rb")
+        interpreter.tokenizer()
+        self.assertEqual(True, interpreter.execParser(), "recebedor variavel")
+
+    def testBasico18(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test18.rb")
+        interpreter.tokenizer()
+        self.assertEqual(True, interpreter.execParser(), "recebedor variavel")
+
+    def testBasico19(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test19.rb")
+        interpreter.tokenizer()
+        self.assertEqual(False, interpreter.execParser(), "recebedor variavel")
+
+    def testBasico20(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test20.rb")
+        interpreter.tokenizer()
+        self.assertEqual(False, interpreter.execParser(), "recebedor variavel")
+
     '''
     #Problema de input de valor
     def testNormal(self):
