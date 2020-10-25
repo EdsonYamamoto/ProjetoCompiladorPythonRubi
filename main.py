@@ -1,78 +1,16 @@
 import re
-from optparse import OptionParser
-import inspect
 
-T_KEYWORDS_INIT= "<keyword init>"
-T_OPLOGICO= "<opLogic %s>"
-T_OPMAT= "<opMat %s>"
-T_BOOL= "<opBool %s>"
-T_INT = "<int %s>"
-T_STRING = "<str %s>"
-T_IDENTIF = "<id %s>"
-T_COMMENT = "<comentario %s>"
-T_LPARENT = "<LParent %s>"
-T_RPARENT = "<RParent %s>"
-T_LCOLCHETE = "<LColchete %s>"
-T_RCOLCHETE = "<RColchete %s>"
-
+T_KEYWORD = "keyword"
+T_OP = "op"
+T_INT = "int"
+T_STRING = "string"
+T_ID = "id"
 T_EOF = "eof"
+T_PAR = "par"
+T_Atribuidor = "<atribuicao %s>"
+T_OPLOGICO= "<opLogic %s>"
+T_COMMENT = "<comentario %s>"
 
-T_ReservWord =[
-    "if",
-    "elseif",
-    "else"
-]
-
-T_ReservWordGets = "<method gets %s>"
-T_ReservWordPuts = "<method puts %s>"
-
-def afd_string(token):
-    if token[0] == '"' and token[-1] == '"':
-        if '"' not in token[1:-1]:
-            return True
-        else:
-            raise ValueError('Aspas em um local inesperado.')
-    else:
-        return False
-
-def afd_int(token):
-    return re.match("[0-9][0-9.]*", token)
-
-def afd_identificador(token):
-    return re.match("[a-zA-Z][a-zA-Z_0-9]*", token)
-
-def afd_comentario(token):
-    return re.match("([\#][.]*)", token)
-
-def afd_operatorMatematico(token):
-    return re.match('[-+*/]', token)
-
-def afd_operatorLogico(token):
-    return re.match('[==]||[!=]||[<]||[>]||[<=]||[>=]', token)
-
-def afd_operatorBool(token):
-    return re.match('([t][r][u][e])|([f][a][l][s][e])', token)
-
-def afd_reservedWord(token):
-    return token in T_ReservWord
-
-def afd_lParent(token):
-    return re.match('([(])', token)
-
-def afd_rParent(token):
-    return re.match('([)])', token)
-
-def afd_lColchete(token):
-    return re.match('([\[])', token)
-
-def afd_rColchete(token):
-    return re.match('([\]])', token)
-
-def afd_reservWordPuts(token):
-    return re.match('([p][u][t][s])', token)
-
-def afd_reservWordGets(token):
-    return re.match('([g][e][t][s])', token)
 
 class Token():
 
@@ -83,54 +21,102 @@ class Token():
     def __str__(self):
         return '<%s %s>' % (self.tipo, self.valor)
 
+
+class StopExecution(Exception):
+    def _render_traceback_(self):
+        pass
+
+
+def afd_int(token):
+    try:
+        token = int(token)
+        return True
+    except:
+        return False
+
+
+def afd_string(token):
+    if token[0] == '"' and token[-1] == '"':
+        if '"' not in token[1:-1]:
+            return True
+        else:
+            raise ValueError('Aspas em um local inesperado.')
+    else:
+        return False
+
+
+def afd_identificador(token):
+    regex = re.compile('[a-zA-Z][a-zA-Z0-9_.]*')
+    r = regex.match(token)
+    if r is not None:
+        if r.group() == token:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+def afd_operadorLogico(token):
+    return re.match("([==])", token)
+
+def afd_comentario(token):
+    return re.match("([\#][.]*)", token)
+
 def afd_principal(token):
     if token == "init":
-        return Token(T_KEYWORDS_INIT)
+        return Token(T_KEYWORD, 'init')
 
-    elif afd_comentario(token):
-        return Token(T_COMMENT, token)
+    elif token in "+-*/":
+        return Token(T_OP, token)
 
-    elif afd_reservedWord(token):
-        return Token(T_ReservWord, token)
+    elif token in "=":
+        return Token(T_Atribuidor, token)
 
-    elif afd_lColchete(token):
-        return Token(T_LCOLCHETE, token)
+    elif afd_operadorLogico(token):
+        return Token(T_OPLOGICO, token)
 
-    elif afd_rColchete(token):
-        return Token(T_RCOLCHETE, token)
-
-    elif afd_lParent(token):
-        return Token(T_LPARENT, token)
-
-    elif afd_rParent(token):
-        return Token(T_RPARENT, token)
-
-    elif afd_reservWordPuts(token):
-        return Token(T_ReservWordPuts, token)
-
-    elif afd_reservWordGets(token):
-        return Token(T_ReservWordGets, token)
-
-    elif afd_operatorMatematico(token):
-        return Token(T_OPMAT, token)
-
-    elif afd_string(token):
-        return Token(T_STRING, token)
+    elif token in "()":
+        return Token(T_PAR, token)
 
     elif afd_int(token):
         return Token(T_INT, token)
 
+    elif afd_string(token):
+        return Token(T_STRING, token)
+
     elif afd_identificador(token):
-        return Token(T_IDENTIF, token)
+        return Token(T_ID, token)
 
-    elif afd_operatorLogico(token):
-        return Token(T_OPLOGICO, token)
-
-    elif afd_operatorBool(token):
-        return Token(T_BOOL, token)
+    elif afd_comentario(token):
+        Token(T_COMMENT, token)
+        return
 
     else:
-        return None
+        raise ValueError('Valor inesperado')
+
+    return None
+
+
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        return self.items.pop()
+
+    def peek(self):
+        return self.items[len(self.items) - 1]
+
+    def size(self):
+        return len(self.items)
+
 
 class Parser():
 
@@ -139,9 +125,12 @@ class Parser():
         self.pos = -1
         self.token_atual = None
 
+        self.dict={}
+        self.pilha = Stack()
         self.proximo()
 
     def proximo(self):
+
         self.pos += 1
 
         if self.pos >= len(self.tokens):
@@ -149,135 +138,207 @@ class Parser():
         else:
             self.token_atual = self.tokens[self.pos]
 
-        print(self.token_atual)
         return self.token_atual
 
     def erro(self):
         raise Exception('Erro de sintaxe.')
 
     def use(self, tipo, valor=None):
+
         if self.token_atual.tipo != tipo:
             self.erro()
         elif valor is not None and self.token_atual.valor != valor:
             self.erro()
         else:
+            print(self.token_atual)
             self.proximo()
 
     def statement(self):
         """
-        statement ::= <id> <op => expr
+        statement ::= expr
         """
-        if self.token_atual.tipo == T_IDENTIF:
-            self.use(T_IDENTIF)
-            self.use(T_OPLOGICO, '=')
-            self.expr()
 
-        #elif self.token_atual.tipo == T_ReservWord:
-        #    if self.token_atual.valor == "if":
-        #        self.use(T_IDENTIF)
+        print("E =")
+        while True:
+            x = self.expr()
 
-        elif self.token_atual.tipo == T_ReservWordPuts:
-            self.use(T_ReservWordPuts)
-            #self.use(T_STRING)
-            self.expr()
+            if self.token_atual.tipo == T_ID and self.pos == len(self.tokens)-1 or self.token_atual.tipo == T_EOF:
+                if self.token_atual.valor != None:
+                    x = self.dict[self.token_atual.valor]
+                break
 
-        elif self.token_atual.tipo == T_ReservWordGets:
-            self.use(T_ReservWordGets)
-            self.use(T_STRING)
-            self.expr()
-        else:
-            "teste"
+        print("= ", x)
+        return x
 
     def expr(self):
         """
         expr ::= term ( <op +> | <op -> term )*
         """
 
-        self.term()
-        if self.token_atual.tipo == T_OPMAT:
-            while self.token_atual.tipo == T_OPMAT and self.token_atual.valor in ['+', '-','*','/']:
-                self.use(T_OPMAT)
-                self.term()
+        a = self.term()
+        while self.token_atual.tipo == T_OP and self.token_atual.valor in ['+', '-']:
+            op = self.token_atual.valor
+            self.use(T_OP)
 
-            """
-            expr ::= term ( <op +> | <op -> term )*
-            """
-        elif self.token_atual.tipo == T_OPLOGICO:
-            while self.token_atual.tipo == T_OPMAT and self.token_atual.valor in ['+', '-','*','/']:
-                self.use(T_OPMAT)
-                self.term()
-            print("teste")
+            b = self.term()
 
-        elif self.token_atual.tipo == T_ReservWordPuts:
-            print("expr T_ReservWordPuts")
+            if op == "+":
+                if type(a) == str and type(b) != str or type(a) != str and type(b) == str :
+                    a = str(a)
+                    b = str(b)
+                a += b
+            elif op == "-":
+                a -= b
 
-        elif self.token_atual.tipo == T_ReservWordGets:
-            print("expr T_ReservWordGets")
-
-        elif self.token_atual.tipo == T_OPMAT:
-            print("teste")
+        return a
 
     def term(self):
         """
-        term ::= <id> | <int>
+        term ::= factor ( <op *> | <op /> factor)*
         """
+
+        a = self.factor()
+        while self.token_atual.tipo == T_OP and self.token_atual.valor in ['*', '/']:
+            op = self.token_atual.valor
+
+            self.use(T_OP)
+            b = self.factor()
+
+            if op == "*":
+                a *= b
+            elif op == "/":
+                a /= b
+
+        return a
+
+    def factor(self):
+        """
+        factor ::= <id> | <int> | <par (> expr <par )>
+        """
+
         if self.token_atual.tipo == T_INT:
+            x = int(self.token_atual.valor)
             self.use(T_INT)
+            return x
+
         elif self.token_atual.tipo == T_STRING:
+            x = self.token_atual.valor
+            if len(x)>1:
+                x = x[1:len(x)-1]
             self.use(T_STRING)
-        elif self.token_atual.tipo == T_BOOL:
-            self.use(T_BOOL)
-        elif self.token_atual.tipo == T_IDENTIF:
-            self.use(T_IDENTIF)
-        elif self.token_atual.tipo == T_ReservWordGets:
-            self.use(T_ReservWordGets)
-        elif self.token_atual.tipo == T_ReservWordPuts:
-            self.use(T_ReservWordPuts)
+            return x
+
+        elif self.token_atual.tipo == T_ID:
+            return self.reserved_functions()
+
+        elif self.token_atual.tipo == T_PAR and self.token_atual.valor == "(":
+            self.use(T_PAR, "(")
+            x = self.expr()
+            self.use(T_PAR, ")")
+            return x
         else:
             self.erro()
 
-arquivo = open('codigo.rb', 'r')
+    def reserved_functions(self):
+        vetor = self.token_atual.valor.split('.')
+        if self.token_atual.valor == 'puts':
+            self.use(T_ID)
+            print(self.expr())
+            return
 
-patternStr = r'"(.*)"'
+        elif vetor[0] == 'gets' and vetor[1] == 'chomp':
+            x = input()
+            if vetor[2] == 'to_i':
+                x = int(x)
+
+            self.use(T_ID)
+            return x
+        elif vetor[0] == 'if' or vetor[0] == 'elsif' or vetor[0] == 'else':
+            self.use(T_ID)
+            booleana = self.expr()
+            teste = self.expr()
+            print("")
+
+        elif vetor[0] == 'end':
+            return self.use(T_ID)
+
+        else:
+
+            self.pilha.push(self.token_atual.valor)
+
+            self.use(T_ID)
+            if self.token_atual.tipo == T_Atribuidor:
+                self.use(T_Atribuidor)
+                self.dict[self.pilha.pop()] = self.expr()
+                return
+            elif self.token_atual.tipo == T_OPLOGICO:
+                if self.token_atual.valor == "==":
+                    self.use(T_OPLOGICO)
+                    if self.token_atual.tipo == T_INT:
+                        self.use(T_INT)
+                    elif self.token_atual.tipo == T_ID:
+                        self.use(T_ID)
+                    elif self.token_atual.tipo == T_STRING:
+                        self.use(T_STRING)
+                    return self.token_atual.valor == self.dict[self.pilha.pop()]
+                return
+
+            return self.dict[self.pilha.pop()]
+
+##############################################################################
+
+
+patternStr = r'((?<![\\])[\'"])((?:.(?!(?<![\\])\1))*.?)\1'
 patternComment = r'#(.*)'
 
-tokens = []
-for l in arquivo.readlines():
-    l = l.replace("\n", "")
+class interpretador:
 
-    if l!='':
-        m = re.search(patternStr, l)
-        if m != None:
-            m2= m.group()
-            l = l.replace(m2,m2.replace(" ","_"))
+    def __init__(self):
+        self.tokens = []
+        self.arquivo = ''
 
-        m = re.search(patternComment, l)
-        if m != None:
-            m2= m.group()
-            l = l.replace(m2,m2.replace(" ","_"))
+    def loadfile(self,fileName):
+        self.arquivo = open(fileName, 'r')
 
-    for token in l.split():
-        try:
-            tokens.append(afd_principal(token))
-        except Exception as e:
-            print(tokens)
-            print(str(e) + " na posição %i da linha %i" % (l.index(token), ln))
-            raise StopExecution
-
-for token in tokens:
-    if token.tipo == T_COMMENT:
-        tokens.remove(token)
-
-parser = Parser(tokens)
+    def tokenizer(self):
+        ln = 1
 
 
+        for l in self.arquivo.readlines():
 
-while True:
-  parser.statement()
-  if len(parser.tokens) == parser.pos:
-    break
-'''
-arvores = arvoreSintatica(tokens)
-for arvore in arvores:
-    print(arvore.PrintTree())
-'''
+            # analisador lexico
+
+            l = l.replace('\n', '')  # remove a quebra de linha
+
+            if l != '':
+
+                tes = re.findall(patternStr, l)
+                for t in tes:
+                    l = l.replace(t[1], t[1].replace(" ", "_"))
+
+                m = re.search(patternComment, l)
+                if m != None:
+                    m2 = m.group()
+                    l = l.replace(m2, m2.replace(" ", "_"))
+
+            for token in l.split():
+                try:
+                    t = afd_principal(token)
+                    if t!=None:
+                        self.tokens.append(t)
+                except Exception as e:
+                    print(str(e) + " na posição %i da linha %i" % (l.index(token), ln))
+                    raise StopExecution
+            ln += 1
+
+    def execParser(self):
+        parser = Parser(self.tokens)
+        return parser.statement()
+
+if __name__ == '__main__':
+
+    interpreter = interpretador()
+    interpreter.loadfile("codigo.x")
+    interpreter.tokenizer()
+
+    result = interpreter.execParser()

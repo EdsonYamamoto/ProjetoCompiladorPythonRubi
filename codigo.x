@@ -14,8 +14,7 @@ puts "2 . -"
 puts "3 . *"
 puts "4 . /"
 
-op = gets.chomp
-op = op.to_i
+op = gets.chomp.to_i
 
 res = 0
 if op == 1
@@ -30,4 +29,5 @@ else
   puts "Comando Inválido"
 end
 
-puts ( "Resultado: " , res)
+puts "Resultado: " + res
+res
