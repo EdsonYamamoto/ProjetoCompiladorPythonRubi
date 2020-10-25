@@ -137,6 +137,9 @@ class Parser():
         self.pilha = Stack()
         self.proximo()
 
+
+        self.batScript= ""
+
     def proximo(self):
 
         self.pos += 1
@@ -276,15 +279,23 @@ class Parser():
         vetor = self.token_atual.valor.split('.')
         if self.token_atual.valor == 'puts':
             self.use(T_ID)
-            print(self.expr())
+            texto = self.expr()
+            print(texto)
+            self.batScript += "echo "+texto+"\n"
             return
 
         elif vetor[0] == 'gets' and vetor[1] == 'chomp':
+
+            self.batScript += "SET "
             x = input()
+
             if vetor[2] == 'to_i':
+                self.batScript += "/A "
                 x = int(x)
 
             self.use(T_ID)
+            self.batScript += " = "+str(x)+"\n"
+
             return x
         elif vetor[0] == 'if' or vetor[0] == 'elsif' or vetor[0] == 'else':
             self.use(T_ID)
@@ -378,6 +389,7 @@ class interpretador:
     def __init__(self):
         self.tokens = []
         self.arquivo = ''
+        self.parser = None
 
     def loadfile(self,fileName):
         self.arquivo = open(fileName, 'r')
@@ -414,8 +426,8 @@ class interpretador:
             ln += 1
 
     def execParser(self):
-        parser = Parser(self.tokens)
-        return parser.statement()
+        self.parser = Parser(self.tokens)
+        return self.parser.statement()
 
 if __name__ == '__main__':
 
