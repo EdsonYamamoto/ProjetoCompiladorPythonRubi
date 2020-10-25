@@ -257,7 +257,7 @@ class Parser():
             self.use(T_ID)
             booleana = self.expr()
             teste = self.expr()
-            print("")
+            return booleana, teste
 
         elif vetor[0] == 'end':
             return self.use(T_ID)
