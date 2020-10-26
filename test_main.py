@@ -141,7 +141,7 @@ class MyTest(unittest.TestCase):
         interpreter.tokenizer()
         interpreter.execParser()
         t = interpreter.parser.batScript
-        self.assertEqual(2, t, "soma funcionando")
+        self.assertEqual("%1%+%1%", t, "soma funcionando")
 
     def testRescreverBasico2(self):
         interpreter = interpretador()

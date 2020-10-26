@@ -197,8 +197,10 @@ class Parser():
                 if type(a) == str and type(b) != str or type(a) != str and type(b) == str :
                     a = str(a)
                     b = str(b)
+                self.batScript+= "%"+str(a)+"%"+"+"+"%"+str(b)+"%"
                 a += b
             elif op == "-":
+                self.batScript+= "%"+str(a)+"%"+"-"+"%"+str(b)+"%"
                 a -= b
 
         while self.token_atual.tipo == T_OPLOGICO and self.token_atual.valor in ["==",">=","<=",">","<","!="]:
@@ -208,16 +210,22 @@ class Parser():
             b = self.term()
 
             if op == "==":
+                self.batScript+="-eq"
                 a = a==b
             elif op == ">=":
+                self.batScript+="-ge"
                 a = a>=b
             elif op == "<=":
+                self.batScript+="-le"
                 a = a<=b
             elif op == ">":
+                self.batScript+="-gt"
                 a = a>b
             elif op == "<":
+                self.batScript+="-lt"
                 a = a<b
             elif op == "!=":
+                self.batScript+="-ne"
                 a = a!=b
 
         return a
@@ -235,8 +243,10 @@ class Parser():
             b = self.factor()
 
             if op == "*":
+                self.batScript+= "%"+str(a)+"%"+"*"+"%"+str(b)+"%"
                 a *= b
             elif op == "/":
+                self.batScript+= "%"+str(a)+"%"+"/"+"%"+str(b)+"%"
                 a /= b
 
         return a
