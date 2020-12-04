@@ -126,6 +126,30 @@ class MyTest(unittest.TestCase):
         interpreter.tokenizer()
         self.assertEqual(False, interpreter.execParser(), "recebedor variavel")
 
+    def testBasico21(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test21.rb")
+        interpreter.tokenizer()
+        self.assertEqual(2.0, interpreter.execParser(), "recebedor variavel")
+
+    def testBasico22(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test22.rb")
+        interpreter.tokenizer()
+        self.assertEqual(3, interpreter.execParser(), "recebedor variavel")
+
+    def testBasico23(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test23.rb")
+        interpreter.tokenizer()
+        self.assertEqual("3True", interpreter.execParser(), "recebedor variavel")
+
+    def testBasico24(self):
+        interpreter = interpretador()
+        interpreter.loadfile("test_repository/codigo_test24.rb")
+        interpreter.tokenizer()
+        print(interpreter.execParser())
+        #self.assertEqual(0, , "recebedor variavel")
     '''
     #Problema de input de valor
     def testNormal(self):
@@ -271,5 +295,14 @@ class MyTest(unittest.TestCase):
         interpreter.tokenizer()
         interpreter.execParser()
         t = interpreter.parser.batScript
+
+        f = open("resultadoCodixoX.rb", "a")
+        f.write(t)
+        f.close()
+
         self.assertEqual(2, t, "soma funcionando")
+
+    #Problema de input de valor
+    def testRescreverNormal2(self):
+        self.assertEqual(1, [], "soma funcionando")
 
