@@ -1,6 +1,6 @@
 #projeto de compilador para transformar ruby em script
-a = 0
-b = 0
+
+puts "Insira dois números: "
 
 puts "Valor de a"
 a = gets.chomp.to_i
@@ -16,7 +16,6 @@ puts "4 . /"
 
 op = gets.chomp.to_i
 
-res = 0
 if op == 1
   res = a + b
 elsif op == 2
@@ -30,4 +29,3 @@ else
 end
 
 puts "Resultado: " + res
-res

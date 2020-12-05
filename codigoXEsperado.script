@@ -7,20 +7,16 @@ echo "1. +"
 echo "2. -"
 echo "3. *"
 echo "4. /"
-read ch
-if [ $ch -eq "1" ]
-then
+read op
+if [ $op -eq "1" ]
 res=`echo $a + $b | bc`
-elif [ $ch -eq "2" ]
-then
+elif [ $op -eq "2" ]
 res=`echo $a - $b | bc`
-elif [ $ch -eq "3" ]
-then
+elif [ $op -eq "3" ]
 res=`echo $a \* $b | bc`
-elif [ $ch -eq "4" ]
-then
+elif [ $op -eq "4" ]
 res=`echo "scale=2; $a / $b" | bc`
 else
 echo "comando inválido"
-fi
+end
 echo "Resultado : $res"

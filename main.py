@@ -170,6 +170,8 @@ class Parser():
         """
 
         print("E =")
+        self.batScript = "# !/bin/bash\n"
+
         while True:
             x = self.expr()
 
@@ -197,14 +199,15 @@ class Parser():
                 if type(a) == str and type(b) != str or type(a) != str and type(b) == str :
                     a = str(a)
                     b = str(b)
-                self.batScript+= "%"+str(a)+"%"+"+"+"%"+str(b)+"%"
+                self.batScript+= " "+ op+" "
                 a += b
 
                 """
                 expr ::= term ( <op -> | <op -> term )*
                 """
             elif op == "-":
-                self.batScript+= "%"+str(a)+"%"+"-"+"%"+str(b)+"%"
+                #self.batScript+= "%"+str(a)+"%"+"-"+"%"+str(b)+"%"
+                self.batScript+= " "+ op+" "
                 a -= b
 
         while self.token_atual.tipo == T_OPLOGICO and self.token_atual.valor in ["==",">=","<=",">","<","!="]:
@@ -240,12 +243,14 @@ class Parser():
             elif op == ">":
                 self.batScript+="-gt"
                 a = a>b
+
                 """
                 expr ::= term ( <op < > | <op -> term )*
                 """
             elif op == "<":
                 self.batScript+="-lt"
                 a = a<b
+
                 """
                 expr ::= term ( <op != > | <op -> term )*
                 """
@@ -256,10 +261,10 @@ class Parser():
         return a
 
     def term(self):
+
         """
         term ::= factor ( <op *> | <op /> factor)*
         """
-
         a = self.factor()
         while self.token_atual.tipo == T_OP and self.token_atual.valor in ['*', '/']:
             op = self.token_atual.valor
@@ -268,15 +273,16 @@ class Parser():
             b = self.factor()
 
             if op == "*":
-                self.batScript+= "%"+str(a)+"%"+"*"+"%"+str(b)+"%"
+                self.batScript+=  " "+ op+" "
                 a *= b
             elif op == "/":
-                self.batScript+= "%"+str(a)+"%"+"/"+"%"+str(b)+"%"
+                self.batScript+=  " "+ op+" "
                 a /= b
 
         return a
 
     def factor(self):
+
         """
         factor ::= <id> | <int> | <par (> expr <par )>
         """
@@ -284,6 +290,7 @@ class Parser():
             x = float(self.token_atual.valor)
             self.use(T_NUMBER)
             return x
+
             """
             factor ::= <id> | <string> | <par (> expr <par )>
             """
@@ -320,16 +327,22 @@ class Parser():
     def reserved_functions(self):
         vetor = self.token_atual.valor.split('.')
 
+        """
+        factor ::= <id> | <id> | <par (> expr <par )>
+        """
         if self.token_atual.valor == 'puts':
             self.use(T_ID)
             texto = self.expr()
             print(texto)
-            self.batScript += "echo "+texto+"\n"
+            self.batScript += "echo \""+texto.replace("_"," ")+"\"\n"
             return
 
+            """
+            factor ::= <id> | <id> | <par (> expr <par )>
+            """
         elif vetor[0] == 'gets' and vetor[1] == 'chomp':
 
-            self.batScript += "SET "
+            self.batScript += "read "
             #x = input()
             x = "1"
             if vetor[2] == 'to_i':
@@ -337,39 +350,77 @@ class Parser():
                 x = int(x)
 
             self.use(T_ID)
-            self.batScript += " = "+str(x)+"\n"
 
             return x
+
+            """
+            statement ::= <id> | <id> | <par (> expr <par )>
+            """
         elif vetor[0] == 'if' or vetor[0] == 'elsif' or vetor[0] == 'else':
+
+            self.batScript+= vetor[0]
+
+            if vetor[0] != 'else':
+                self.batScript += "["
+            else:
+                self.batScript += "\n"
+
+
             self.use(T_ID)
             booleana = self.expr()
+
+            if vetor[0] != 'else':
+                self.batScript += "]\n"
+
             teste = self.expr()
             return booleana, teste
 
         elif vetor[0] == 'end':
+            self.batScript+=vetor[0]+"\n"
+
             return self.use(T_ID)
 
+            """
+            statement ::= <id> | <id> | <par (> id <par )>
+            """
         else:
             self.pilha.push(self.token_atual.valor)
+            variavelAuxiliar = self.token_atual.valor
+
+            self.batScript += " "+variavelAuxiliar+" "
 
             self.use(T_ID)
+
             if self.token_atual.tipo == T_Atribuidor:
+                self.batScript += " "+self.token_atual.valor +" "
                 self.use(T_Atribuidor)
+
                 self.dict[self.pilha.pop()] = self.expr()
+
+                self.batScript += variavelAuxiliar +" \n"
+
                 return
             elif self.token_atual.tipo == T_OPLOGICO:
+                self.batScript+="$"+variavelAuxiliar
+
                 if self.token_atual.valor == "==":
+                    self.batScript+=" -eq "
                     self.use(T_OPLOGICO)
                     if self.token_atual.tipo == T_NUMBER:
+                        self.batScript+= self.token_atual.valor
                         self.use(T_NUMBER)
                     elif self.token_atual.tipo == T_ID:
+                        self.batScript+= self.token_atual.valor
                         self.use(T_ID)
                     elif self.token_atual.tipo == T_STRING:
+                        self.batScript+= self.token_atual.valor
                         self.use(T_STRING)
                     elif self.token_atual.tipo == T_BOOL:
+                        self.batScript+= self.token_atual.valor
                         self.use(T_BOOL)
                     return self.token_atual.valor == self.dict[self.pilha.pop()]
-                elif self.token_atual.valor == "!=":
+                elif self.token_atual.valor == "-ne":
+                    self.batScript+=self.token_atual.valor
                     self.use(T_OPLOGICO)
                     if self.token_atual.tipo == T_NUMBER:
                         self.use(T_NUMBER)
@@ -380,7 +431,8 @@ class Parser():
                     elif self.token_atual.tipo == T_BOOL:
                         self.use(T_BOOL)
                     return self.token_atual.valor != self.dict[self.pilha.pop()]
-                elif self.token_atual.valor == ">=":
+                elif self.token_atual.valor == "-ge":
+                    self.batScript+=self.token_atual.valor
                     self.use(T_OPLOGICO)
                     if self.token_atual.tipo == T_NUMBER:
                         self.use(T_NUMBER)
@@ -389,7 +441,8 @@ class Parser():
                     elif self.token_atual.tipo == T_STRING:
                         self.use(T_STRING)
                     return self.token_atual.valor >= self.dict[self.pilha.pop()]
-                elif self.token_atual.valor == "<=":
+                elif self.token_atual.valor == "-le":
+                    self.batScript+=self.token_atual.valor
                     self.use(T_OPLOGICO)
                     if self.token_atual.tipo == T_NUMBER:
                         self.use(T_NUMBER)
@@ -398,7 +451,7 @@ class Parser():
                     elif self.token_atual.tipo == T_STRING:
                         self.use(T_STRING)
                     return self.token_atual.valor <= self.dict[self.pilha.pop()]
-                elif self.token_atual.valor == ">":
+                elif self.token_atual.valor == "-gr":
                     self.use(T_OPLOGICO)
                     if self.token_atual.tipo == T_NUMBER:
                         self.use(T_NUMBER)
@@ -407,7 +460,8 @@ class Parser():
                     elif self.token_atual.tipo == T_STRING:
                         self.use(T_STRING)
                     return self.token_atual.valor > self.dict[self.pilha.pop()]
-                elif self.token_atual.valor == "<":
+                elif self.token_atual.valor == "-lt":
+                    self.batScript+=self.token_atual.valor
                     self.use(T_OPLOGICO)
                     if self.token_atual.tipo == T_NUMBER:
                         self.use(T_NUMBER)
@@ -416,6 +470,7 @@ class Parser():
                     elif self.token_atual.tipo == T_STRING:
                         self.use(T_STRING)
                     return self.token_atual.valor < self.dict[self.pilha.pop()]
+
                 return
 
             return self.dict[self.pilha.pop()]
@@ -438,7 +493,6 @@ class interpretador:
 
     def tokenizer(self):
         ln = 1
-
 
         for l in self.arquivo.readlines():
 
@@ -469,6 +523,7 @@ class interpretador:
 
     def execParser(self):
         self.parser = Parser(self.tokens)
+
         return self.parser.statement()
 
 if __name__ == '__main__':

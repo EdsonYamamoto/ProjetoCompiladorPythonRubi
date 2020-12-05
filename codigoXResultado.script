@@ -1,0 +1,24 @@
+# !/bin/bash
+echo "Insira dois números: "
+echo "Valor de a"
+ a  = read /A a 
+echo "Valor de b"
+ b  = read /A b 
+echo "Escolha a operação:"
+echo "1 . +"
+echo "2 . -"
+echo "3 . *"
+echo "4 . /"
+ op  = read /A op 
+if[ op $op -eq 1]
+ res  =  a  b  + res 
+elsif[ op $op -eq 2]
+ res  =  a  b  - res 
+elsif[ op $op -eq 3]
+ res  =  a  b  * res 
+elsif[ op $op -eq 4]
+ res  =  a  b  / res 
+else
+echo "Comando Inválido"
+end
+ res  + echo "Resultado: 1.0"
